@@ -1,0 +1,92 @@
+import 'package:flame/components.dart';
+import 'package:flame/game.dart';
+import 'package:flame/input.dart';
+import 'package:flutter/material.dart';
+import 'dart:math';
+
+void main() {
+  runApp(GameWidget(game: SpaceShooterGame()));
+}
+
+class SpaceShooterGame extends FlameGame with PanDetector, HasGameRef<SpaceShooterGame> {
+  late Player player;
+  late Enemy enemy1;
+  late Enemy enemy2;
+  late Enemy enemy3;
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+
+    player = Player();
+    enemy1 = Enemy(Vector2(0, 0));
+    enemy2 = Enemy(Vector2(gameRef.size.x / 2, 0));
+    enemy3 = Enemy(Vector2(gameRef.size.x, 0));
+
+    add(player);
+    add(enemy1);
+    add(enemy2);
+    add(enemy3);
+  }
+
+  @override
+  void onPanUpdate(DragUpdateInfo info) {
+    player.move(info.delta.game);
+  }
+
+  void removeEnemy(Enemy enemy) {
+    remove(enemy);
+  }
+}
+
+
+class Player extends SpriteComponent with HasGameRef<SpaceShooterGame> {
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+
+    sprite = await gameRef.loadSprite('player.png');
+
+    position = gameRef.size / 2;
+    width = 60;
+    height = 70;
+    anchor = Anchor.center;
+  }
+
+  void move(Vector2 delta) {
+    position.add(delta);
+  }
+}
+
+class Enemy extends SpriteComponent with HasGameRef<SpaceShooterGame> {
+  double speed = 100;
+  Vector2 respawnPoint;
+
+  Enemy(this.respawnPoint);
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+
+    sprite = await gameRef.loadSprite('enemy.png');
+
+    position = respawnPoint;
+    width = 50;
+    height = 50;
+    anchor = Anchor.center;
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    position.add(Vector2(0, speed * dt));
+
+    if (position.y > gameRef.size.y) {
+      gameRef.removeEnemy(this);
+      //gameRef.add(Enemy(respawnPoint));  
+    }
+  }
+}
+
+

@@ -1,0 +1,191 @@
+import 'package:flame/components.dart';
+import 'package:flame/game.dart';
+import 'package:flame/input.dart';
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(GameWidget(game: SpaceShooterGame()));
+}
+ 
+class SpaceShooterGame extends FlameGame with PanDetector {
+  late Player player;
+  late Enemy enemy;
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    
+    player = Player();
+    enemy = Enemy();
+
+    add(player);
+    add(enemy);
+  }
+
+  @override
+  void onPanUpdate(DragUpdateInfo info) {
+    player.move(info.delta.game);
+  }
+}
+
+//create a background class to add background to the game
+class Background extends PositionComponent {
+  static final _paint = Paint()..color = Colors.black;
+  @override
+  void render(Canvas canvas) {
+    canvas.drawRect(size.toRect(), _paint);
+  }
+}
+
+
+class Player extends SpriteComponent with HasGameRef<SpaceShooterGame> {
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+
+    sprite = await gameRef.loadSprite('ship_H.png');
+    //player start position on bottom of the screen
+    position = Vector2(gameRef.size.x / 2, gameRef.size.y - 100);
+    width = 60;
+    height = 70;
+    anchor = Anchor.center;
+  }
+
+  void move(Vector2 delta) {
+    position.add(delta);
+  }
+
+//create a player shoot function
+  void shoot() {
+    //create a bullet
+    //add bullet to the game
+  }
+
+//create a player die function
+  void die() {
+    //remove player from the game when enemy hit player
+  }
+
+//create a player respawn function
+  void respawn() {
+    //add player to the game
+  }
+
+//create a player hit function
+  void hit() {
+    //remove bullet from the game
+    //remove enemy from the game
+    //add score to the game
+  }
+
+}
+
+//create a enemy class to add enemy to the game
+class Enemy extends SpriteComponent with HasGameRef<SpaceShooterGame> {
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+
+    sprite = await gameRef.loadSprite('enemy.png');
+    //enemy start position on top of the screen
+    position = Vector2(gameRef.size.x / 2, 100);
+    width = 60;
+    height = 70;
+    anchor = Anchor.center;
+  }
+
+  
+  //create a enemy movement function  
+  void move(Vector2 delta) {
+    position.add(delta);
+  }
+
+  //create a enemy shoot function
+  void shoot() {
+    //create a bullet
+    //add bullet to the game
+  }
+
+  //create a enemy die function
+  void die() {
+    //remove enemy from the game 
+  }
+
+  //create a enemy respawn function
+  void respawn() {
+    //add enemy to the game
+  }
+
+  //create a enemy hit function
+  void hit() {
+    //remove bullet from the game
+    //remove player from the game
+    //add score to the game
+  }
+
+
+}
+
+//create a bullet class, player and enemy will use this class to shoot bullet to the game 
+class Bullet extends PositionComponent {
+  static final _paint = Paint()..color = Colors.white;
+  static const double speed = -500;
+
+  @override
+  void render(Canvas canvas) {
+    canvas.drawRect(size.toRect(), _paint);
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    position.add(Vector2(0, speed * dt));
+  }
+}
+
+//create a score class to add score to the game
+class Score extends TextComponent {
+  static final _paint = Paint()..color = Colors.white;
+  int score = 0;
+
+  Score() : super('Score: $score', textRenderer: TextPaint(_paint));
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    text = 'Score: $score';
+  }
+}
+
+//create a enemy manager class to add enemy manager to the game
+
+
+//create a gameover class to add gameover to the game
+//create a gamestart class to add gamestart to the game
+//create a gamepause class to add gamepause to the game
+//create a gamecontinue class to add gamecontinue to the game
+//create a gameover function to add gameover to the game
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

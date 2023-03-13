@@ -1,0 +1,39 @@
+import 'package:flutter/material.dart';
+import 'package:flame/game.dart';
+
+void main() {
+  runApp(
+    MaterialApp(
+      home: Scaffold(
+        body: GameWidget(game: SpaceShooterGame()),
+      ),
+    ),
+  );
+}
+class SpaceShooterGame extends FlameGame {
+  @override
+  Future<void> onLoad() async {
+    // 在這裡加載資源
+  }
+
+  @override
+  void update(double dt) {
+    // 在這裡處理遊戲邏輯
+  }
+
+  @override
+  void render(Canvas canvas) {
+    // 在這裡渲染遊戲畫面
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
