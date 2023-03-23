@@ -1,6 +1,6 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'game/game.dart';
+import 'game/Game.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flame/flame.dart';
 import 'overlays/game_over_menu.dart';

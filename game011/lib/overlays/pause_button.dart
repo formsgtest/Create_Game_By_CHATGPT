@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game011/game/game.dart';
+import 'package:game011/game/Game.dart';
 import 'pause_menu.dart';
 
 
