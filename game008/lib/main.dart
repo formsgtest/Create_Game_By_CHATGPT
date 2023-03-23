@@ -1,111 +1,162 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flame/collisions.dart';
+import 'package:flame/events.dart';
+import 'package:flame/game.dart';
+import 'package:flame/parallax.dart';
+import 'package:flame/sprite.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flame/flame.dart';
+import 'package:flame/components.dart';
+import 'dart:ui';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'overlays/game_over_menu.dart';
+import 'overlays/pause_button.dart';
+import 'overlays/pause_menu.dart';
 
-import 'models/settings.dart';
-import 'screens/main_menu.dart';
-import 'models/player_data.dart';
-import 'models/spaceship_details.dart';
+void main() => runApp(MyApp());
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // This opens the app in fullscreen mode.
-  await Flame.device.fullScreen();
-
-  // Initialize hive.
-  await initHive();
-
-  runApp(
-    MultiProvider(
-      providers: [
-        FutureProvider<PlayerData>(
-          create: (BuildContext context) => getPlayerData(),
-          initialData: PlayerData.fromMap(PlayerData.defaultData),
-        ),
-        FutureProvider<Settings>(
-          create: (BuildContext context) => getSettings(),
-          initialData: Settings(soundEffects: false, backgroundMusic: false),
-        ),
-      ],
-      builder: (context, child) {
-        // We use .value constructor here because the required objects
-        // are already created by upstream FutureProviders.
-        return MultiProvider(
-          providers: [
-            ChangeNotifierProvider<PlayerData>.value(
-              value: Provider.of<PlayerData>(context),
-            ),
-            ChangeNotifierProvider<Settings>.value(
-              value: Provider.of<Settings>(context),
-            ),
-          ],
-          child: child,
-        );
-      },
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        // Dark more because we are too cool for white theme.
-        themeMode: ThemeMode.dark,
-        // Use custom theme with 'BungeeInline' font.
-        darkTheme: ThemeData(
-          brightness: Brightness.dark,
-          fontFamily: 'BungeeInline',
-          scaffoldBackgroundColor: Colors.black,
-        ),
-        // MainMenu will be the first screen for now.
-        // But this might change in future if we decide
-        // to add a splash screen.
-        home: const MainMenu(),
-      ),
-    ),
-  );
-}
-
-// This function initializes hive with app's
-// documents directory and also registers
-// all the hive adapters.
-Future<void> initHive() async {
-  await Hive.initFlutter();
-
-  Hive.registerAdapter(PlayerDataAdapter());
-  Hive.registerAdapter(SpaceshipTypeAdapter());
-  Hive.registerAdapter(SettingsAdapter());
-}
-
-/// This function reads the stored [PlayerData] from disk.
-Future<PlayerData> getPlayerData() async {
-  // Open the player data box and read player data from it.
-  final box = await Hive.openBox<PlayerData>(PlayerData.playerDataBox);
-  final playerData = box.get(PlayerData.playerDataKey);
-
-  // If player data is null, it means this is a fresh launch
-  // of the game. In such case, we first store the default
-  // player data in the player data box and then return the same.
-  if (playerData == null) {
-    box.put(
-      PlayerData.playerDataKey,
-      PlayerData.fromMap(PlayerData.defaultData),
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      title: 'Space Shooter Game',
+      home: SpaceShooterGame(),
+      debugShowCheckedModeBanner: false,
     );
   }
-
-  return box.get(PlayerData.playerDataKey)!;
 }
 
-/// This function reads the stored [Settings] from disk.
-Future<Settings> getSettings() async {
-  // Open the settings box and read settings from it.
-  final box = await Hive.openBox<Settings>(Settings.settingsBox);
-  final settings = box.get(Settings.settingsKey);
+class SpaceShooterGame extends StatefulWidget {
+  const SpaceShooterGame({Key? key}) : super(key: key);
 
-  // If settings is null, it means this is a fresh launch
-  // of the game. In such case, we first store the default
-  // settings in the settings box and then return the same.
-  if (settings == null) {
-    box.put(Settings.settingsKey,
-        Settings(soundEffects: true, backgroundMusic: true));
+  @override
+  _SpaceShooterGameState createState() => _SpaceShooterGameState();
+}
+
+class _SpaceShooterGameState extends State<SpaceShooterGame> {
+  int _selectedIndex = 0;
+  List<Widget> _pages = [SelectSpaceship()];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Space Shooter Game',
+        ),
+      ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'main',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_grocery_store_sharp),
+            label: 'Shop',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'profile',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        onTap: (int index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ),
+    );
   }
+}
 
-  return box.get(Settings.settingsKey)!;
+class SelectSpaceship extends StatelessWidget {
+  const SelectSpaceship({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Start button.
+            SizedBox(
+              width: MediaQuery.of(context).size.width / 3,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const GamePlay(),
+                    ),
+                  );
+                },
+                child: const Text('Start'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+SpacescapeGame _spacescapeGame = SpacescapeGame();
+
+
+class GamePlay extends StatelessWidget {
+  const GamePlay({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: WillPopScope(
+        onWillPop: () async => false,
+        child: GameWidget(
+          game: _spacescapeGame,
+
+          initialActiveOverlays: const [PauseButton.id],
+          overlayBuilderMap: {
+            PauseButton.id: (BuildContext context, SpacescapeGame gameRef) =>
+                PauseButton(
+                  gameRef: gameRef,
+                ),
+            PauseMenu.id: (BuildContext context, SpacescapeGame gameRef) =>
+                PauseMenu(
+                  gameRef: gameRef,
+                ),
+            GameOverMenu.id: (BuildContext context, SpacescapeGame gameRef) =>
+                GameOverMenu(
+                  gameRef: gameRef,
+                ),
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class SpacescapeGame extends FlameGame with PanDetector, HasCollisionDetection {
+  final bool _isAlreadyLoaded = false;
+
+  @override
+  Future<void> onLoad() async {
+    camera.viewport = FixedResolutionViewport(Vector2(540, 960));
+
+    if (!_isAlreadyLoaded) {
+      final stars = await ParallaxComponent.load(
+        [ParallaxImageData('stars1.png'), ParallaxImageData('stars2.png')],
+        repeat: ImageRepeat.repeat,
+        baseVelocity: Vector2(0, -50),
+        velocityMultiplierDelta: Vector2(0, 1.5),
+      );
+      add(stars);
+    }
+  }
 }
